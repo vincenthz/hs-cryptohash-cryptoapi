@@ -28,8 +28,10 @@ module Crypto.Hash.CryptoAPI
     , Tiger
     , Whirlpool
     , Hash(..)
-    , hash
-    , hash'
+    -- * Contexts
+    , CTXMD2, CTXMD4, CTXMD5, CTXRIPEMD160, CTXSHA1, CTXSHA224
+    , CTXSHA256, CTXSHA384, CTXSHA512, CTXSkein256_256, CTXSkein512_512
+    , CTXTiger, CTXWhirlpool
     ) where
 
 import qualified Crypto.Hash.MD2 as MD2 (Ctx, init, update, finalize)
