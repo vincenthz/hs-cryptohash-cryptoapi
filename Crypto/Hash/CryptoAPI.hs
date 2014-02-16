@@ -28,25 +28,27 @@ module Crypto.Hash.CryptoAPI
     , Tiger
     , Whirlpool
     , Hash(..)
-    , hash
-    , hash'
+    -- * Contexts
+    , CTXMD2, CTXMD4, CTXMD5, CTXRIPEMD160, CTXSHA1, CTXSHA224
+    , CTXSHA256, CTXSHA384, CTXSHA512, CTXSkein256_256, CTXSkein512_512
+    , CTXTiger, CTXWhirlpool
     ) where
 
-import qualified Crypto.Hash.MD2 as MD2 (Ctx, init, update, finalize)
-import qualified Crypto.Hash.MD4 as MD4 (Ctx, init, update, finalize)
-import qualified Crypto.Hash.MD5 as MD5 (Ctx, init, update, finalize)
-import qualified Crypto.Hash.SHA1 as SHA1 (Ctx, init, update, finalize)
-import qualified Crypto.Hash.SHA224 as SHA224 (Ctx, init, update, finalize)
-import qualified Crypto.Hash.SHA256 as SHA256 (Ctx, init, update, finalize)
-import qualified Crypto.Hash.SHA384 as SHA384 (Ctx, init, update, finalize)
-import qualified Crypto.Hash.SHA512 as SHA512 (Ctx, init, update, finalize)
-import qualified Crypto.Hash.SHA512t as SHA512t (Ctx, init, update, finalize)
-import qualified Crypto.Hash.SHA3 as SHA3 (Ctx, init, update, finalize)
-import qualified Crypto.Hash.RIPEMD160 as RIPEMD160 (Ctx, init, update, finalize)
-import qualified Crypto.Hash.Tiger as Tiger (Ctx, init, update, finalize)
-import qualified Crypto.Hash.Skein256 as Skein256 (Ctx, init, update, finalize)
-import qualified Crypto.Hash.Skein512 as Skein512 (Ctx, init, update, finalize)
-import qualified Crypto.Hash.Whirlpool as Whirlpool (Ctx, init, update, finalize)
+import qualified Crypto.Hash.MD2 as MD2 (Ctx(..), init, update, finalize, hash, hashlazy)
+import qualified Crypto.Hash.MD4 as MD4 (Ctx(..), init, update, finalize, hash, hashlazy)
+import qualified Crypto.Hash.MD5 as MD5 (Ctx(..), init, update, finalize, hash, hashlazy)
+import qualified Crypto.Hash.SHA1 as SHA1 (Ctx(..), init, update, finalize, hash, hashlazy)
+import qualified Crypto.Hash.SHA224 as SHA224 (Ctx(..), init, update, finalize, hash, hashlazy)
+import qualified Crypto.Hash.SHA256 as SHA256 (Ctx(..), init, update, finalize, hash, hashlazy)
+import qualified Crypto.Hash.SHA384 as SHA384 (Ctx(..), init, update, finalize, hash, hashlazy)
+import qualified Crypto.Hash.SHA512 as SHA512 (Ctx(..), init, update, finalize, hash, hashlazy)
+import qualified Crypto.Hash.SHA512t as SHA512t (Ctx(..), init, update, finalize, hash, hashlazy)
+import qualified Crypto.Hash.SHA3 as SHA3 (Ctx(..), init, update, finalize, hash, hashlazy)
+import qualified Crypto.Hash.RIPEMD160 as RIPEMD160 (Ctx(..), init, update, finalize, hash, hashlazy)
+import qualified Crypto.Hash.Tiger as Tiger (Ctx(..), init, update, finalize, hash, hashlazy)
+import qualified Crypto.Hash.Skein256 as Skein256 (Ctx(..), init, update, finalize, hash, hashlazy)
+import qualified Crypto.Hash.Skein512 as Skein512 (Ctx(..), init, update, finalize, hash, hashlazy)
+import qualified Crypto.Hash.Whirlpool as Whirlpool (Ctx(..), init, update, finalize, hash, hashlazy)
 
 import Control.Monad (liftM)
 import Data.ByteString (ByteString)
@@ -79,12 +81,19 @@ instance Hash CTXNAME NAME where \
    ; initialCtx      = CTXNAME MODULENAME.init        \
    ; updateCtx (CTXNAME ctx) = CTXNAME . MODULENAME.update ctx      \
    ; finalize (CTXNAME ctx) bs = NAME $ MODULENAME.finalize (MODULENAME.update ctx bs) \
+   ; hash' = NAME . MODULENAME.hash \
+   ; hash  = NAME . MODULENAME.hashlazy \
    }; \
 \
 instance Serialize NAME where \
    { get          = liftM NAME (getByteString OUTPUTLEN) \
    ; put (NAME d) = putByteString d \
-   }
+   }; \
+\
+instance Serialize CTXNAME where \
+  { get                              = liftM (CTXNAME . MODULENAME.Ctx) get \
+  ; put (CTXNAME (MODULENAME.Ctx c)) = put c \
+  }
 
 #define DEFINE_TYPE_AND_INSTANCES_WITHLEN(CTXNAME, NAME, ILEN, MODULENAME, OUTPUTLEN, BLOCKLEN)    \
 \
@@ -98,6 +107,8 @@ instance Hash CTXNAME NAME where \
    ; initialCtx      = CTXNAME (MODULENAME.init ILEN) \
    ; updateCtx (CTXNAME ctx) = CTXNAME . MODULENAME.update ctx      \
    ; finalize (CTXNAME ctx) bs = NAME $ MODULENAME.finalize (MODULENAME.update ctx bs) \
+   ; hash' = NAME . MODULENAME.hash OUTPUTLEN \
+   ; hash  = NAME . MODULENAME.hashlazy OUTPUTLEN \
    }; \
 \
 instance Serialize NAME where \
