@@ -99,23 +99,6 @@ instance Hash CTXNAME NAME where \
    ; updateCtx (CTXNAME ctx) = CTXNAME . H.hashUpdate ctx \
    ; finalize (CTXNAME ctx) bs = NAME $ B.convert $ H.hashFinalize (H.hashUpdate ctx bs) \
 
-#define DEFINE_TYPE_AND_INSTANCES_WITHLEN(CTXNAME, NAME, ILEN, MODULENAME, OUTPUTLEN, BLOCKLEN)    \
-\
-data NAME = NAME !ByteString deriving (Eq,Ord,Show); \
-\
-instance Serialize NAME where \
-   { get          = liftM NAME (getByteString OUTPUTLEN) \
-   ; put (NAME d) = putByteString d \
-   }; \
-\
-instance Hash CTXNAME NAME where \
-   { outputLength    = Tagged (OUTPUTLEN * 8) \
-   ; blockLength     = Tagged (BLOCKLEN * 8)  \
-   ; initialCtx      = CTXNAME (H.hashInit) \
-   ; updateCtx (CTXNAME ctx) = CTXNAME . H.hashUpdate ctx      \
-   ; finalize (CTXNAME ctx) bs = NAME $ B.convert $ H.hashFinalize (H.hashUpdate ctx bs) \
-
-
 
 newtype CTXMD2 = CTXMD2 (H.Context H.MD2)
 newtype CTXMD4 = CTXMD4 (H.Context H.MD4)
@@ -205,12 +188,12 @@ DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXWhirlpool, Whirlpool, 64, 64)
    ; hash' = Whirlpool . B.convert . (H.hashWith H.Whirlpool)
    };
 
-DEFINE_TYPE_AND_INSTANCES_WITHLEN(CTXSkein256_256, Skein256_256, 256, Skein256, 32, 32)
+DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXSkein256_256, Skein256_256, 32, 32)
    ; hash = Skein256_256 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.Skein256_256)
    ; hash' = Skein256_256 . B.convert . (H.hashWith H.Skein256_256)
    };
 
-DEFINE_TYPE_AND_INSTANCES_WITHLEN(CTXSkein512_512, Skein512_512, 512, Skein512, 64, 64)
+DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXSkein512_512, Skein512_512, 64, 64)
    ; hash = Skein512_512 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.Skein512_512)
    ; hash' = Skein512_512 . B.convert . (H.hashWith H.Skein512_512)
    };
