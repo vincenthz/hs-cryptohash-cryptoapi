@@ -23,6 +23,9 @@ module Crypto.Hash.CryptoAPI
     , SHA256
     , SHA384
     , SHA512
+    , SHA3_256
+    , SHA3_384
+    , SHA3_512
     , Skein256_256
     , Skein512_512
     , RIPEMD160
@@ -31,7 +34,9 @@ module Crypto.Hash.CryptoAPI
     , Hash(..)
     -- * Contexts
     , CTXMD2, CTXMD4, CTXMD5, CTXRIPEMD160, CTXSHA1, CTXSHA224
-    , CTXSHA256, CTXSHA384, CTXSHA512, CTXSkein256_256, CTXSkein512_512
+    , CTXSHA256, CTXSHA384, CTXSHA512
+    , CTXSHA3_256, CTXSHA3_384, CTXSHA3_512
+    , CTXSkein256_256, CTXSkein512_512
     , CTXTiger, CTXWhirlpool
     ) where
 
@@ -47,7 +52,7 @@ import Data.Tagged (Tagged(..))
 import Crypto.Classes (Hash(..), hash, hash')
 import qualified Data.ByteArray as B (convert)
 
--- 
+--
 -- need to redefine a context wrapper to not clash with the already existing
 -- and avoid the "function dependencies conflict between instance declaration" error.
 --
@@ -100,6 +105,9 @@ newtype CTXSHA224 = CTXSHA224 (H.Context H.SHA224)
 newtype CTXSHA256 = CTXSHA256 (H.Context H.SHA256)
 newtype CTXSHA384 = CTXSHA384 (H.Context H.SHA384)
 newtype CTXSHA512 = CTXSHA512 (H.Context H.SHA512)
+newtype CTXSHA3_256 = CTXSHA3_256 (H.Context H.SHA3_256)
+newtype CTXSHA3_384 = CTXSHA3_384 (H.Context H.SHA3_384)
+newtype CTXSHA3_512 = CTXSHA3_512 (H.Context H.SHA3_512)
 newtype CTXRIPEMD160 = CTXRIPEMD160 (H.Context H.RIPEMD160)
 newtype CTXTiger = CTXTiger (H.Context H.Tiger)
 newtype CTXWhirlpool = CTXWhirlpool (H.Context H.Whirlpool)
@@ -144,6 +152,21 @@ DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXSHA384, SHA384, 48, 128)
 DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXSHA512, SHA512, 64, 128)
    ; hash = SHA512 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.SHA512)
    ; hash' = SHA512 . B.convert . (H.hashWith H.SHA512)
+   };
+
+DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXSHA3_256, SHA3_256, 32, 64)
+   ; hash = SHA3_256 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.SHA3_256)
+   ; hash' = SHA3_256 . B.convert . (H.hashWith H.SHA3_256)
+   };
+
+DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXSHA3_384, SHA3_384, 48, 128)
+   ; hash = SHA3_384 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.SHA3_384)
+   ; hash' = SHA3_384 . B.convert . (H.hashWith H.SHA3_384)
+   };
+
+DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXSHA3_512, SHA3_512, 64, 128)
+   ; hash = SHA3_512 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.SHA3_512)
+   ; hash' = SHA3_512 . B.convert . (H.hashWith H.SHA3_512)
    };
 
 DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXRIPEMD160, RIPEMD160, 20, 64)
