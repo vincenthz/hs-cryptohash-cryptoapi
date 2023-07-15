@@ -23,9 +23,25 @@ module Crypto.Hash.CryptoAPI
     , SHA256
     , SHA384
     , SHA512
-    , SHA3_256
-    , SHA3_384
     , SHA3_512
+    , SHA3_384
+    , SHA3_256
+    , SHA3_224
+    , Keccak_512
+    , Keccak_384
+    , Keccak_256
+    , Keccak_224
+    , Blake2sp_256
+    , Blake2sp_224
+    , Blake2s_256
+    , Blake2s_224
+    , Blake2s_160
+    , Blake2bp_512
+    , Blake2b_512
+    , Blake2b_384
+    , Blake2b_256
+    , Blake2b_224
+    , Blake2b_160
     , Skein256_256
     , Skein512_512
     , RIPEMD160
@@ -34,9 +50,13 @@ module Crypto.Hash.CryptoAPI
     , Hash(..)
     -- * Contexts
     , CTXMD2, CTXMD4, CTXMD5, CTXRIPEMD160, CTXSHA1, CTXSHA224
-    , CTXSHA256, CTXSHA384, CTXSHA512
-    , CTXSHA3_256, CTXSHA3_384, CTXSHA3_512
-    , CTXSkein256_256, CTXSkein512_512
+    , CTXSHA256, CTXSHA384, CTXSHA512, CTXSkein256_256, CTXSkein512_512
+    , CTXSHA3_512, CTXSHA3_384, CTXSHA3_256, CTXSHA3_224
+    , CTXKeccak_512, CTXKeccak_384, CTXKeccak_256, CTXKeccak_224
+    , CTXBlake2sp_256, CTXBlake2sp_224
+    , CTXBlake2s_256, CTXBlake2s_224, CTXBlake2s_160
+    , CTXBlake2bp_512
+    , CTXBlake2b_512, CTXBlake2b_384, CTXBlake2b_256, CTXBlake2b_224, CTXBlake2b_160
     , CTXTiger, CTXWhirlpool
     ) where
 
@@ -79,23 +99,6 @@ instance Hash CTXNAME NAME where \
    ; updateCtx (CTXNAME ctx) = CTXNAME . H.hashUpdate ctx \
    ; finalize (CTXNAME ctx) bs = NAME $ B.convert $ H.hashFinalize (H.hashUpdate ctx bs) \
 
-#define DEFINE_TYPE_AND_INSTANCES_WITHLEN(CTXNAME, NAME, ILEN, MODULENAME, OUTPUTLEN, BLOCKLEN)    \
-\
-data NAME = NAME !ByteString deriving (Eq,Ord,Show); \
-\
-instance Serialize NAME where \
-   { get          = liftM NAME (getByteString OUTPUTLEN) \
-   ; put (NAME d) = putByteString d \
-   }; \
-\
-instance Hash CTXNAME NAME where \
-   { outputLength    = Tagged (OUTPUTLEN * 8) \
-   ; blockLength     = Tagged (BLOCKLEN * 8)  \
-   ; initialCtx      = CTXNAME (H.hashInit) \
-   ; updateCtx (CTXNAME ctx) = CTXNAME . H.hashUpdate ctx      \
-   ; finalize (CTXNAME ctx) bs = NAME $ B.convert $ H.hashFinalize (H.hashUpdate ctx bs) \
-
-
 
 newtype CTXMD2 = CTXMD2 (H.Context H.MD2)
 newtype CTXMD4 = CTXMD4 (H.Context H.MD4)
@@ -105,9 +108,25 @@ newtype CTXSHA224 = CTXSHA224 (H.Context H.SHA224)
 newtype CTXSHA256 = CTXSHA256 (H.Context H.SHA256)
 newtype CTXSHA384 = CTXSHA384 (H.Context H.SHA384)
 newtype CTXSHA512 = CTXSHA512 (H.Context H.SHA512)
-newtype CTXSHA3_256 = CTXSHA3_256 (H.Context H.SHA3_256)
-newtype CTXSHA3_384 = CTXSHA3_384 (H.Context H.SHA3_384)
 newtype CTXSHA3_512 = CTXSHA3_512 (H.Context H.SHA3_512)
+newtype CTXSHA3_384 = CTXSHA3_384 (H.Context H.SHA3_384)
+newtype CTXSHA3_256 = CTXSHA3_256 (H.Context H.SHA3_256)
+newtype CTXSHA3_224 = CTXSHA3_224 (H.Context H.SHA3_224)
+newtype CTXKeccak_512 = CTXKeccak_512 (H.Context H.Keccak_512)
+newtype CTXKeccak_384 = CTXKeccak_384 (H.Context H.Keccak_384)
+newtype CTXKeccak_256 = CTXKeccak_256 (H.Context H.Keccak_256)
+newtype CTXKeccak_224 = CTXKeccak_224 (H.Context H.Keccak_224)
+newtype CTXBlake2sp_256 = CTXBlake2sp_256 (H.Context H.Blake2sp_256)
+newtype CTXBlake2sp_224 = CTXBlake2sp_224 (H.Context H.Blake2sp_224)
+newtype CTXBlake2s_256 = CTXBlake2s_256 (H.Context H.Blake2s_256)
+newtype CTXBlake2s_224 = CTXBlake2s_224 (H.Context H.Blake2s_224)
+newtype CTXBlake2s_160 = CTXBlake2s_160 (H.Context H.Blake2s_160)
+newtype CTXBlake2bp_512 = CTXBlake2bp_512 (H.Context H.Blake2bp_512)
+newtype CTXBlake2b_512 = CTXBlake2b_512 (H.Context H.Blake2b_512)
+newtype CTXBlake2b_384 = CTXBlake2b_384 (H.Context H.Blake2b_384)
+newtype CTXBlake2b_256 = CTXBlake2b_256 (H.Context H.Blake2b_256)
+newtype CTXBlake2b_224 = CTXBlake2b_224 (H.Context H.Blake2b_224)
+newtype CTXBlake2b_160 = CTXBlake2b_160 (H.Context H.Blake2b_160)
 newtype CTXRIPEMD160 = CTXRIPEMD160 (H.Context H.RIPEMD160)
 newtype CTXTiger = CTXTiger (H.Context H.Tiger)
 newtype CTXWhirlpool = CTXWhirlpool (H.Context H.Whirlpool)
@@ -154,21 +173,6 @@ DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXSHA512, SHA512, 64, 128)
    ; hash' = SHA512 . B.convert . (H.hashWith H.SHA512)
    };
 
-DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXSHA3_256, SHA3_256, 32, 64)
-   ; hash = SHA3_256 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.SHA3_256)
-   ; hash' = SHA3_256 . B.convert . (H.hashWith H.SHA3_256)
-   };
-
-DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXSHA3_384, SHA3_384, 48, 128)
-   ; hash = SHA3_384 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.SHA3_384)
-   ; hash' = SHA3_384 . B.convert . (H.hashWith H.SHA3_384)
-   };
-
-DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXSHA3_512, SHA3_512, 64, 128)
-   ; hash = SHA3_512 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.SHA3_512)
-   ; hash' = SHA3_512 . B.convert . (H.hashWith H.SHA3_512)
-   };
-
 DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXRIPEMD160, RIPEMD160, 20, 64)
    ; hash = RIPEMD160 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.RIPEMD160)
    ; hash' = RIPEMD160 . B.convert . (H.hashWith H.RIPEMD160)
@@ -184,13 +188,107 @@ DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXWhirlpool, Whirlpool, 64, 64)
    ; hash' = Whirlpool . B.convert . (H.hashWith H.Whirlpool)
    };
 
-DEFINE_TYPE_AND_INSTANCES_WITHLEN(CTXSkein256_256, Skein256_256, 256, Skein256, 32, 32)
+DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXSkein256_256, Skein256_256, 32, 32)
    ; hash = Skein256_256 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.Skein256_256)
    ; hash' = Skein256_256 . B.convert . (H.hashWith H.Skein256_256)
    };
 
-DEFINE_TYPE_AND_INSTANCES_WITHLEN(CTXSkein512_512, Skein512_512, 512, Skein512, 64, 64)
+DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXSkein512_512, Skein512_512, 64, 64)
    ; hash = Skein512_512 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.Skein512_512)
    ; hash' = Skein512_512 . B.convert . (H.hashWith H.Skein512_512)
    };
 
+DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXSHA3_224, SHA3_224, 28, 144)
+   ; hash = SHA3_224 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.SHA3_224)
+   ; hash' = SHA3_224 . B.convert . (H.hashWith H.SHA3_224)
+   };
+
+DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXSHA3_256, SHA3_256, 32, 136)
+   ; hash = SHA3_256 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.SHA3_256)
+   ; hash' = SHA3_256 . B.convert . (H.hashWith H.SHA3_256)
+   };
+
+DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXSHA3_384, SHA3_384, 48, 104)
+   ; hash = SHA3_384 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.SHA3_384)
+   ; hash' = SHA3_384 . B.convert . (H.hashWith H.SHA3_384)
+   };
+
+DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXSHA3_512, SHA3_512, 64, 72)
+   ; hash = SHA3_512 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.SHA3_512)
+   ; hash' = SHA3_512 . B.convert . (H.hashWith H.SHA3_512)
+   };
+
+DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXKeccak_224, Keccak_224, 28, 144)
+   ; hash = Keccak_224 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.Keccak_224)
+   ; hash' = Keccak_224 . B.convert . (H.hashWith H.Keccak_224)
+   };
+
+DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXKeccak_256, Keccak_256, 32, 136)
+   ; hash = Keccak_256 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.Keccak_256)
+   ; hash' = Keccak_256 . B.convert . (H.hashWith H.Keccak_256)
+   };
+
+DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXKeccak_384, Keccak_384, 48, 104)
+   ; hash = Keccak_384 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.Keccak_384)
+   ; hash' = Keccak_384 . B.convert . (H.hashWith H.Keccak_384)
+   };
+
+DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXKeccak_512, Keccak_512, 64, 72)
+   ; hash = Keccak_512 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.Keccak_512)
+   ; hash' = Keccak_512 . B.convert . (H.hashWith H.Keccak_512)
+   };
+
+DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXBlake2sp_224, Blake2sp_224, 28, 64)
+   ; hash = Blake2sp_224 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.Blake2sp_224)
+   ; hash' = Blake2sp_224 . B.convert . (H.hashWith H.Blake2sp_224)
+   };
+
+DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXBlake2sp_256, Blake2sp_256, 32, 64)
+   ; hash = Blake2sp_256 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.Blake2sp_256)
+   ; hash' = Blake2sp_256 . B.convert . (H.hashWith H.Blake2sp_256)
+   };
+
+DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXBlake2s_160, Blake2s_160, 20, 64)
+   ; hash = Blake2s_160 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.Blake2s_160)
+   ; hash' = Blake2s_160 . B.convert . (H.hashWith H.Blake2s_160)
+   };
+
+DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXBlake2s_224, Blake2s_224, 28, 64)
+   ; hash = Blake2s_224 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.Blake2s_224)
+   ; hash' = Blake2s_224 . B.convert . (H.hashWith H.Blake2s_224)
+   };
+
+DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXBlake2s_256, Blake2s_256, 32, 64)
+   ; hash = Blake2s_256 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.Blake2s_256)
+   ; hash' = Blake2s_256 . B.convert . (H.hashWith H.Blake2s_256)
+  };
+
+DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXBlake2bp_512, Blake2bp_512, 64, 128)
+   ; hash = Blake2bp_512 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.Blake2bp_512)
+   ; hash' = Blake2bp_512 . B.convert . (H.hashWith H.Blake2bp_512)
+  };
+
+DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXBlake2b_512, Blake2b_512, 64, 128)
+   ; hash = Blake2b_512 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.Blake2b_512)
+   ; hash' = Blake2b_512 . B.convert . (H.hashWith H.Blake2b_512)
+  };
+
+DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXBlake2b_384, Blake2b_384, 48, 128)
+   ; hash = Blake2b_384 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.Blake2b_384)
+   ; hash' = Blake2b_384 . B.convert . (H.hashWith H.Blake2b_384)
+  };
+
+DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXBlake2b_256, Blake2b_256, 32, 128)
+   ; hash = Blake2b_256 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.Blake2b_256)
+   ; hash' = Blake2b_256 . B.convert . (H.hashWith H.Blake2b_256)
+  };
+
+DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXBlake2b_224, Blake2b_224, 28, 128)
+   ; hash = Blake2b_224 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.Blake2b_224)
+   ; hash' = Blake2b_224 . B.convert . (H.hashWith H.Blake2b_224)
+  };
+
+DEFINE_TYPE_AND_INSTANCES_SIMPLE(CTXBlake2b_160, Blake2b_160, 20, 128)
+   ; hash = Blake2b_160 . B.convert . (H.hashlazy :: L.ByteString -> H.Digest H.Blake2b_160)
+   ; hash' = Blake2b_160 . B.convert . (H.hashWith H.Blake2b_160)
+  };
